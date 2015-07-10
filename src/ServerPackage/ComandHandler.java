@@ -10,7 +10,7 @@ class MoveMobHandler extends ComandHandler
 	@Override
 	public void Handle(String text) {
 	
-		System.out.println("Получена команда подвинуть моба:" + text);
+		System.out.println("Command move mob:" + text);
 	}
 	
 }
@@ -21,7 +21,7 @@ class MovePlanetHandler extends ComandHandler
 	@Override
 	public void Handle(String text) {
 		
-		System.out.println("Получена команда подвинуть планету:" + text);
+		System.out.println("Command move planet:" + text);
 	}
 }
 
@@ -31,6 +31,6 @@ class AttackMobHandler extends ComandHandler
 	@Override
 	public void Handle(String text) {
 		
-		System.out.println("Получена команда атаковать мобом:" + text);
+		System.out.println("Command attack by mob:" + text);
 	}
 }
