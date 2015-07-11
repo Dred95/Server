@@ -7,49 +7,52 @@ import java.util.Map;
 import java.util.Queue;
 
 /*TODO
- * Remove this shit with static methods
- * Change program enter point to another class
- * Change main(arguments) to constructor
+ * Add get & set to queues
  * 
  * */
-public class GameServer {
-	public static Queue<String> inputQueue = new LinkedList<String>();
-	static Map<String,ComandHandler> comandHandlers = new HashMap<String, ComandHandler>();
+public class MessageServer {
+	 public  Queue<String> inputQueue = new LinkedList<String>();
+	 public  Queue<String> outputQueue = new LinkedList<String>();
+	 Map<String,CommandHandler> comandHandlers = new HashMap<String, CommandHandler>();
 	
-	static SocketListener socketl1; 						
-	static SocketListener socketl2;
-	static Thread thread1 ; 								
-	static Thread thread2;
-	static 	java.net.ServerSocket server;	
+	 SocketListener socketl1; 						
+	 SocketListener socketl2;
+	 Thread thread1 ; 								
+	 Thread thread2;
+	 java.net.ServerSocket server;	
 	
-	static void InitializeServer() throws IOException
+	 public MessageServer()
+	 {
+	
+	 }
+	 
+	void InitializeServer() throws IOException
 	{
 		System.out.println("Start Server");
 		server = new ServerSocket(7070);		
 	
-		socketl1 = new SocketListener(server);
+		socketl1 = new SocketListener(this, server);
 		thread1 = new Thread(socketl1,"thread1");
 		thread1.setDaemon(true);
 		thread1.start();
 		System.out.println("Thread 1 started");
 		
-		socketl2 = new SocketListener(server);
+		socketl2 = new SocketListener(this, server);
 		thread2 = new Thread(socketl2,"thread2");
 		thread2.setDaemon(true);
 		thread2.start();
 		System.out.println("Thread 2 started");
 		
 		
-		comandHandlers.put("MovM", new MoveMobHandler() );
-		comandHandlers.put("MovP", new MovePlanetHandler() );
-		comandHandlers.put("AtkM", new AttackMobHandler() );
+		comandHandlers.put("MovM", new MoveMobHandler(this) );
+		comandHandlers.put("MovP", new MovePlanetHandler(this) );
+		comandHandlers.put("AtkM", new AttackMobHandler(this) );
 		
 	}
 	//Test commands
-	//From1MovM10-5:1,23,4.
-	//From0AtkM10-5:1,23,4.
+	//From1MovM10;5:1,23,4.
 
-	static boolean TryReadMessage(String input)
+boolean TryReadMessage(String input)
 	{
 
 		if (input.length()<10)
@@ -69,7 +72,7 @@ public class GameServer {
 			substring = input.substring(0, 1);
 			int fromID = Integer.parseInt(substring);
 			
-			if (fromID >-1 && fromID<2)
+			if (fromID >0 && fromID<10)
 			{
 				System.out.println("Command from id ="+fromID);
 				input = input.substring(1, input.length());
@@ -100,7 +103,7 @@ public class GameServer {
 		return false;
 	}
 	
-	public static void main(String[] args) throws UnknownHostException, IOException, InterruptedException {
+	public  void Run() throws UnknownHostException, IOException, InterruptedException {
 		InitializeServer();
 
 		
@@ -108,21 +111,33 @@ public class GameServer {
 		System.out.println("Wait for messages");
 		
 		while (true) {
-			if (!inputQueue.isEmpty())
+			if (!inputQueue.isEmpty() || !outputQueue.isEmpty())
 			{
-				input = inputQueue.poll();
+				if (!inputQueue.isEmpty()){
+					input = inputQueue.poll();
+					
+					if(!TryReadMessage(input) && !input.equalsIgnoreCase("close"))
+					{
+						socketl1.Send(input);
+						socketl2.Send(input);
+						System.out.println("Uncorrect message: "+input);
+					}		
+				}
+				if (!outputQueue.isEmpty()){
+					
+					socketl1.Send(outputQueue.peek());
+					socketl2.Send(outputQueue.poll());
+					
+				}
 			}else
 			{
+				
+				
 				Thread.sleep(1000);
 				continue;
 			}
 			
-			if(!TryReadMessage(input))
-			{
-				socketl1.Send(input);
-				socketl2.Send(input);
-				System.out.println(input);
-			}		
+			
 		
 			if (!thread1.isAlive() && !thread2.isAlive()) break;
 			}
@@ -138,13 +153,15 @@ public class GameServer {
 
 class SocketListener implements Runnable
 {
+	MessageServer gameServer;
 	java.net.ServerSocket server = null;
 	BufferedReader in;
 	PrintWriter out;
 	Socket client;
-	public SocketListener(java.net.ServerSocket serverSocket)
+	public SocketListener(MessageServer creator, java.net.ServerSocket serverSocket)
 	{
 		this.server = serverSocket;
+		this.gameServer = creator;
 	}
 
 	@Override
@@ -163,7 +180,7 @@ class SocketListener implements Runnable
 				//out.println("? ::: "+input);
 				//System.out.println(input);
 				//input = Thread.currentThread().getName() + ": "+input;
-				GameServer.inputQueue.add(input);
+				gameServer.inputQueue.add(input);
 				}
 			
 		} catch (IOException e) {
@@ -178,7 +195,7 @@ class SocketListener implements Runnable
 	
 	public void Send(String message)
 	{
-		if (out!=null)
+		if (out!=null && message!=null && !message.isEmpty())
 		{
 			out.println(message);
 		}
