@@ -6,72 +6,36 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
-
-
-import com.google.gson.*;
-
 /*TODO
  * Add get & set to queues
  * 
  * */
 public class MessageServer {
-	 private Queue<String> inputQueue = new LinkedList<String>();
-	 private  Queue<String> outputQueue = new LinkedList<String>();
-	 private  Map<String,CommandHandler> commandHandlers = new HashMap<String, CommandHandler>();
-	 
+	 public  Queue<String> inputQueue = new LinkedList<String>();
+	 public  Queue<String> outputQueue = new LinkedList<String>();
+	 Map<String,CommandHandler> comandHandlers = new HashMap<String, CommandHandler>();
 	
-	 private  SocketListener socketl1; 						
-	 private  SocketListener socketl2;
-	 private  Thread thread1; 								
-	 private  Thread thread2;
-	 private  java.net.ServerSocket server;	
-     public  Gson gson;
-	 private DefaultCommand command;
-	 public Utils utils;
-	 public GameplayServer gameplayServer;
-	 
-	 
-	 public void addToInputQueue(String command)
-	 {
-		 if (command!=null && !command.isEmpty())
-		 {
-			 inputQueue.add(command);
-		 }
-	 }
-	 public void addToOutputQueue(String command)
-	 {
-		 if (command!=null && !command.isEmpty())
-		 {
-			 outputQueue.add(command);
-		 }
-	 }
-	 
-	 
+	 SocketListener socketl1; 						
+	 SocketListener socketl2;
+	 Thread thread1 ; 								
+	 Thread thread2;
+	 java.net.ServerSocket server;	
+	
 	 public MessageServer()
 	 {
 	
 	 }
 	 
-	 public void SetGameplayServer(GameplayServer gameplayServer)
-	 {
-		 this.gameplayServer = gameplayServer;
-	 }
-	 
-	 private  void InitializeServer() throws IOException
+	void InitializeServer() throws IOException
 	{
-		utils = new Utils();
 		System.out.println("Start Server");
 		server = new ServerSocket(7070);		
 	
-		gson = new GsonBuilder().setPrettyPrinting().create();
-		
-		
 		socketl1 = new SocketListener(this, server);
 		thread1 = new Thread(socketl1,"thread1");
 		thread1.setDaemon(true);
 		thread1.start();
 		System.out.println("Thread 1 started");
-		socketl1.Send("From0Setp1:");
 		
 		socketl2 = new SocketListener(this, server);
 		thread2 = new Thread(socketl2,"thread2");
@@ -80,56 +44,69 @@ public class MessageServer {
 		System.out.println("Thread 2 started");
 		
 		
-		
-		
-		commandHandlers.put("MovM", new MoveHandler(this) );
-		commandHandlers.put("MovP", new MovePlanetHandler(this) );
-		commandHandlers.put("AtkM", new AttackMobHandler(this) );
+		comandHandlers.put("MovM", new MoveMobHandler(this) );
+		comandHandlers.put("MovP", new MovePlanetHandler(this) );
+		comandHandlers.put("AtkM", new AttackMobHandler(this) );
 		
 	}
-	/*Test commands
-{  "x": 5,  "y": 10,  "mobs": [    13,    14  ],  "name": "MovM", "From": 1}
-	 */
-	 private  boolean TryReadMessage(String input)
+	//Test commands
+	//From1MovM10;5:1,23,4.
+
+boolean TryReadMessage(String input)
 	{
-		command = gson.fromJson(input, DefaultCommand.class);
-		
-		
-		if(commandHandlers.containsKey(command.name))
+
+		if (input.length()<10)
 		{
-			commandHandlers.get(command.name).Handle(input);
-			return true;
-		}
+			System.out.println("Invalid lenght :"+input);
+			return false;
+		} 
 		
-		return false;
-	
-					
-	}
-	public void SendTo(int receiverID, String message)
-	{
-		if (receiverID == 1)
+		String substring = input.substring(0, 4);
+		
+		if (!substring.equalsIgnoreCase("From"))
 		{
-			message = utils.DeleteSpaces(message);
-			socketl1.Send(message);
-			
-			
-		} else if(receiverID == 2)
-		{
-			message = utils.DeleteSpaces(message);
-			socketl2.Send(message);
-			
+			System.out.println("Invalid header: " + substring);
 		}else
 		{
-			System.out.println("Wrong receiver ID: "+ receiverID);
+			input = input.substring(4, input.length());
+			substring = input.substring(0, 1);
+			int fromID = Integer.parseInt(substring);
+			
+			if (fromID >0 && fromID<10)
+			{
+				System.out.println("Command from id ="+fromID);
+				input = input.substring(1, input.length());
+				substring = input.substring(0, 4);
+			
+				if (!comandHandlers.containsKey(substring))
+				{
+					System.out.println("Invalid Command: " + substring);
+					
+				}else
+				{
+				
+					input = input.substring(4, input.length());
+					if (input.charAt(input.length()-1)!='.')
+					{
+						System.out.println("Last char not . :"+input.charAt(input.length()-1));
+					}else
+					{
+						comandHandlers.get(substring).Handle(input);
+						return true;
+					}
+					
+					
+				}
+				
+			}
 		}
-		
+		return false;
 	}
 	
-
 	public  void Run() throws UnknownHostException, IOException, InterruptedException {
 		InitializeServer();
+
 		
-				
 		String input="";
 		System.out.println("Wait for messages");
 		
@@ -160,6 +137,8 @@ public class MessageServer {
 				continue;
 			}
 			
+			
+		
 			if (!thread1.isAlive() && !thread2.isAlive()) break;
 			}
 		
@@ -174,12 +153,11 @@ public class MessageServer {
 
 class SocketListener implements Runnable
 {
-	private  MessageServer gameServer;
-	private  java.net.ServerSocket server = null;
-	private  BufferedReader in;
-	private  PrintWriter out;
-	private  Socket client;
-	
+	MessageServer gameServer;
+	java.net.ServerSocket server = null;
+	BufferedReader in;
+	PrintWriter out;
+	Socket client;
 	public SocketListener(MessageServer creator, java.net.ServerSocket serverSocket)
 	{
 		this.server = serverSocket;
@@ -202,7 +180,7 @@ class SocketListener implements Runnable
 				//out.println("? ::: "+input);
 				//System.out.println(input);
 				//input = Thread.currentThread().getName() + ": "+input;
-				gameServer.addToInputQueue(input);
+				gameServer.inputQueue.add(input);
 				}
 			
 		} catch (IOException e) {
