@@ -1,5 +1,7 @@
 package ServerPackage;
+import java.util.ArrayList;
 
+import GameplayPackage.*;
 public abstract class CommandHandler {
 	MessageServer messageServer;
 	CommandHandler(MessageServer creator)
@@ -9,10 +11,64 @@ public abstract class CommandHandler {
 	abstract public void Handle(String text);
 }
 
-//typical command 10-5:1,23,4.
-class MoveMobHandler extends CommandHandler
+class DefaultCommand
 {
-	MoveMobHandler(MessageServer creator) {
+	String name ="Blank";
+	int From = 0;
+}
+
+class Move extends DefaultCommand
+{
+	int x;
+	int y;
+
+	int[]mobs;
+	
+	Move(int x, int y, int[] mobs)
+	{
+		name ="Move";  //command identifier
+		this.x = x;
+		this.y = y;
+		this.mobs = mobs;
+	}
+}
+class Setp extends DefaultCommand
+{
+	ArrayList<Mob> mobs;
+	ArrayList<Planet> planets;
+	int receiverID;
+	
+	Setp(ArrayList<Mob> mobs, ArrayList<Planet> planets, int receiverID)
+	{
+		name ="Setp";  //command identifier
+		this.planets = planets;
+		this.mobs = mobs;
+		this.receiverID = receiverID;
+	}
+}
+
+//Delta update
+class Delt extends DefaultCommand	
+
+{
+	ArrayList<Mob> mobs;
+	ArrayList<Planet> planets;
+	
+	Delt()
+	{
+		name ="Delt";  //command identifier
+		planets = new ArrayList<Planet>();
+		mobs = new ArrayList<>();
+	}
+}
+
+
+
+
+//typical command 10-5:1,23,4.
+class MoveHandler extends CommandHandler
+{
+	MoveHandler(MessageServer creator) {
 		super(creator);
 		// TODO Auto-generated constructor stub
 	}
@@ -25,43 +81,30 @@ class MoveMobHandler extends CommandHandler
 	@Override
 	public void Handle(String text) {
 		
-		try{
-			sArray = text.split(";");
+		Move command = messageServer.gson.fromJson(text, Move.class);
 		
-			x = Integer.parseInt(sArray[0]);
-			text = text.substring(sArray[0].length()+1);
-			sArray = text.split(":");
-			y = Integer.parseInt(sArray[0]);
+		System.out.println(String.format("Move to [%d ; %d] mobs: %d", command.x, command.y, command.mobs[0])); // if all fine echo back command
 		
-			text = text.substring(sArray[0].length()+1);
-			
-		
-			text = text.substring(0,text.length()-1);
-			//System.out.println("new text: "+text);
-			
-			sArray =  text.split(",");
-			mobs = new int[sArray.length];
-			for (int i = 0;i< mobs.length; i++) {
-				mobs[i] = Integer.parseInt(sArray[i]);
-			}
-			
-			
-		}
-		catch(java.lang.NumberFormatException e)
+		if (command.mobs[0]>49)
 		{
-			System.out.println("Invalid numbers");
-			return;
+			messageServer.gameplayServer.moveToPoint(command.x, command.y, null, command.mobs);
 		}
-		System.out.println(String.format("Move to [%d ; %d] mobs: %s", x, y, text)); // if all fine echo back command
 		
-		text = "From0MovM" +x+";"+y+":"+mobs[0];
-		
-		for (int i = 1; i< mobs.length; i++)
+		if (command.mobs[0]<50)
 		{
-			text+=","+ mobs[i];
+			messageServer.gameplayServer.movePlanetToPoint(command.x, command.y, null, command.mobs);
 		}
-		text +=".";
-		messageServer.outputQueue.add(text);
+			
+		
+		
+		
+		
+	
+		String temp = messageServer.gson.toJson(command);
+		
+		temp = temp.replaceAll("\n", "");
+		temp = temp.replaceAll(" ", "");
+		messageServer.addToOutputQueue(temp);
 		
 	}
 
