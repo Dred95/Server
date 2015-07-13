@@ -10,16 +10,11 @@ import java.util.Queue;
 
 import com.google.gson.*;
 
-/*TODO
- * Add get & set to queues
- * 
- * */
 public class MessageServer {
 	 private Queue<String> inputQueue = new LinkedList<String>();
 	 private  Queue<String> outputQueue = new LinkedList<String>();
 	 private  Map<String,CommandHandler> commandHandlers = new HashMap<String, CommandHandler>();
 	 
-	
 	 private  SocketListener socketl1; 						
 	 private  SocketListener socketl2;
 	 private  Thread thread1; 								
@@ -31,40 +26,27 @@ public class MessageServer {
 	 public GameplayServer gameplayServer;
 	 
 	 
-	 public void addToInputQueue(String command)
-	 {
-		 if (command!=null && !command.isEmpty())
-		 {
+	 public void addToInputQueue(String command){
+		 if (command!=null && !command.isEmpty()){
 			 inputQueue.add(command);
 		 }
 	 }
-	 public void addToOutputQueue(String command)
-	 {
-		 if (command!=null && !command.isEmpty())
-		 {
+	 public void addToOutputQueue(String command){
+		 if (command!=null && !command.isEmpty()){
 			 outputQueue.add(command);
 		 }
 	 }
 	 
-	 
-	 public MessageServer()
-	 {
-	
-	 }
-	 
-	 public void SetGameplayServer(GameplayServer gameplayServer)
-	 {
+	 public void SetGameplayServer(GameplayServer gameplayServer){
 		 this.gameplayServer = gameplayServer;
 	 }
 	 
-	 private  void InitializeServer() throws IOException
-	{
+	 private  void InitializeServer() throws IOException{
 		utils = new Utils();
 		System.out.println("Start Server");
 		server = new ServerSocket(7070);		
 	
 		gson = new GsonBuilder().setPrettyPrinting().create();
-		
 		
 		socketl1 = new SocketListener(this, server);
 		thread1 = new Thread(socketl1,"thread1");
@@ -79,9 +61,6 @@ public class MessageServer {
 		thread2.start();
 		System.out.println("Thread 2 started");
 		
-		
-		
-		
 		commandHandlers.put("MovM", new MoveHandler(this) );
 		commandHandlers.put("MovP", new MovePlanetHandler(this) );
 		commandHandlers.put("AtkM", new AttackMobHandler(this) );
@@ -90,72 +69,51 @@ public class MessageServer {
 	/*Test commands
 {  "x": 5,  "y": 10,  "mobs": [    13,    14  ],  "name": "MovM", "From": 1}
 	 */
-	 private  boolean TryReadMessage(String input)
-	{
+	 private  boolean TryReadMessage(String input){
 		command = gson.fromJson(input, DefaultCommand.class);
 		
-		
-		if(commandHandlers.containsKey(command.name))
-		{
+		if(commandHandlers.containsKey(command.name)){
 			commandHandlers.get(command.name).Handle(input);
 			return true;
 		}
 		
 		return false;
-	
-					
 	}
-	public void SendTo(int receiverID, String message)
-	{
-		if (receiverID == 1)
-		{
+	 
+	public void SendTo(int receiverID, String message){
+		if (receiverID == 1){
 			message = utils.DeleteSpaces(message);
 			socketl1.Send(message);
-			
-			
-		} else if(receiverID == 2)
-		{
+		} else if(receiverID == 2){
 			message = utils.DeleteSpaces(message);
 			socketl2.Send(message);
-			
-		}else
-		{
+		}else {
 			System.out.println("Wrong receiver ID: "+ receiverID);
-		}
-		
+		}	
 	}
 	
-
 	public  void Run() throws UnknownHostException, IOException, InterruptedException {
 		InitializeServer();
-		
-				
+			
 		String input="";
 		System.out.println("Wait for messages");
 		
 		while (true) {
-			if (!inputQueue.isEmpty() || !outputQueue.isEmpty())
-			{
+			if (!inputQueue.isEmpty() || !outputQueue.isEmpty()){
 				if (!inputQueue.isEmpty()){
 					input = inputQueue.poll();
 					
-					if(!TryReadMessage(input) && !input.equalsIgnoreCase("close"))
-					{
+					if(!TryReadMessage(input) && !input.equalsIgnoreCase("close")){
 						socketl1.Send(input);
 						socketl2.Send(input);
 						System.out.println("Uncorrect message: "+input);
 					}		
 				}
 				if (!outputQueue.isEmpty()){
-					
 					socketl1.Send(outputQueue.peek());
 					socketl2.Send(outputQueue.poll());
-					
 				}
-			}else
-			{
-				
-				
+			} else {
 				Thread.sleep(1000);
 				continue;
 			}
@@ -166,30 +124,23 @@ public class MessageServer {
 		socketl1.Close();
 		socketl2.Close();
 		server.close();
-		
 	}
-	
 }
 
-
-class SocketListener implements Runnable
-{
+class SocketListener implements Runnable{
 	private  MessageServer gameServer;
 	private  java.net.ServerSocket server = null;
 	private  BufferedReader in;
 	private  PrintWriter out;
 	private  Socket client;
 	
-	public SocketListener(MessageServer creator, java.net.ServerSocket serverSocket)
-	{
+	public SocketListener(MessageServer creator, java.net.ServerSocket serverSocket){
 		this.server = serverSocket;
 		this.gameServer = creator;
 	}
 
 	@Override
 	public void run(){
-		
-		
 		String input;
 		try {
 			client = server.accept();
@@ -206,28 +157,21 @@ class SocketListener implements Runnable
 				}
 			
 		} catch (IOException e) {
-		
 			e.printStackTrace();
 		}
 		
-		
 		System.out.println(""+Thread.currentThread().getName()+" Closed");
-		
 	}
 	
-	public void Send(String message)
-	{
-		if (out!=null && message!=null && !message.isEmpty())
-		{
+	public void Send(String message){
+		if (out!=null && message!=null && !message.isEmpty()){
 			out.println(message);
 		}
 	}
-	public void Close() throws IOException
-	{
-		if (client!=null)
-		{
+	
+	public void Close() throws IOException{
+		if (client!=null){
 			client.close();
 		}
 	}
-	
 }

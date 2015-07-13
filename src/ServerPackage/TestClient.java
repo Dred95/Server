@@ -2,47 +2,33 @@ package ServerPackage;
 import java.io.*;
 import java.net.*;
 	
-	
-class BufferListener implements Runnable
-{
+class BufferListener implements Runnable{
 	BufferedReader in;
 	boolean wantClose = false;
-	public BufferListener(BufferedReader br)
-	{
+	
+	public BufferListener(BufferedReader br){
 		this.in = br;
 	}
 	
-	public void Close()
-	{
+	public void Close(){
 		wantClose = true;
 		System.out.println("in == null");
 	}
 
 	@Override
-	public void run()
-	{
-		
-		
+	public void run(){
 		String input;
 		try {
-			
-			while (!wantClose && (input = in.readLine()) != null ) 
-			{
+			while (!wantClose && (input = in.readLine()) != null ) {
 				if (input.equalsIgnoreCase("exit")) break;
 				System.out.println(input);
 			}
 			
-		} catch (IOException e) 
-		{
-		
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		
 		System.out.println("BufferListener "+Thread.currentThread().getName()+" Closed");
-		
 	}
-	
 }
 	
 	
@@ -78,6 +64,4 @@ public class TestClient {
 		fromserver.close();
 		System.out.println("ClientClosed");
 	}
-	
-
 }

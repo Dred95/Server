@@ -1,5 +1,7 @@
 package GameplayPackage;
 
+import ServerPackage.GameplayServer;
+
 /**
  * Parent class for game objects
  */
@@ -20,9 +22,6 @@ public class SuperFigure {
      * @param radius - radius
      * @param ownerID - player's id who owns the object
      */
-    
-    
-    
     public SuperFigure(int ID, float x, float y, float radius, int ownerID){
         this.ID = ID;
        
@@ -30,6 +29,45 @@ public class SuperFigure {
         isSelected = false;
         isMove = false;
         this.ownerID = ownerID;
+    }
+    
+
+    public void update(GameplayServer gameWorld, float delta){
+        moving();
+    }
+
+    /**
+     * Method for moving to target
+     */
+    public void moving() {
+        if (isMove) {
+            if(target == null) {
+                if (!figure.overlaps(new Circle(newX, newY, figure.radius))) {
+                    figure.x += stepX;
+                    figure.y += stepY;
+                }
+            } else {
+                if (!figure.overlaps(target.getFigure())) {
+                    figure.x += (target.getFigure().x - figure.x)/200;
+                    figure.y += (target.getFigure().y - figure.y)/200;
+                }
+            }
+        }
+    }
+
+    public void setNextPosition(float newX, float newY, SuperFigure target){
+        if(isSelected){
+            stepX = (newX - figure.x)/200;
+            stepY = (newY - figure.y)/200;
+            isSelected = false;
+            if(target == null) {
+                this.newX = newX;
+                this.newY = newY;
+            } else {
+                this.target = target;
+            }
+            isMove = true;
+        }
     }
 
     /**

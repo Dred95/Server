@@ -9,40 +9,29 @@ public class Utils {
 	int lastMobID = 50;
 	public  Gson gson;
 	
-	
-	public Utils()
-	{
+	public Utils(){
 		gson = new GsonBuilder().setPrettyPrinting().create();
 	}
 	
-	public String CreateSetupConfig(Setp setp)
-	{
+	public String CreateSetupConfig(Setp setp){
 		return gson.toJson(setp);
-		
 	}
 	
-	public String CreateDeltaUpdate(Delt delt)
-	{
-		return gson.toJson(delt);
-		
+	public String CreateDeltaUpdate(Delt delt){
+		return gson.toJson(delt);	
 	}
 	
-	public int GetNewPlanetID()
-	{
+	public int GetNewPlanetID(){
 		return ++lastPlanetID;
 	}
 	
-	public int GetNewMobID()
-	{
+	public int GetNewMobID(){
 		return ++lastMobID;
 	}
 	
-	public String DeleteSpaces(String text)
-	{
+	public String DeleteSpaces(String text){
 		text = text.replaceAll("\n", "");
 		text = text.replaceAll(" ", "");
 		return text;
 	}
-	
-	
 }

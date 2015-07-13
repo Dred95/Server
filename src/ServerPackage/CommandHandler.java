@@ -2,44 +2,41 @@ package ServerPackage;
 import java.util.ArrayList;
 
 import GameplayPackage.*;
+
 public abstract class CommandHandler {
 	MessageServer messageServer;
-	CommandHandler(MessageServer creator)
+	
+	public CommandHandler(MessageServer creator)
 	{
 		messageServer = creator;
 	}
 	abstract public void Handle(String text);
 }
 
-class DefaultCommand
-{
+class DefaultCommand{
 	String name ="Blank";
 	int From = 0;
 }
 
-class Move extends DefaultCommand
-{
+class Move extends DefaultCommand{
 	int x;
 	int y;
 
 	int[]mobs;
 	
-	Move(int x, int y, int[] mobs)
-	{
+	public Move(int x, int y, int[] mobs){
 		name ="Move";  //command identifier
 		this.x = x;
 		this.y = y;
 		this.mobs = mobs;
 	}
 }
-class Setp extends DefaultCommand
-{
+class Setp extends DefaultCommand{
 	ArrayList<Mob> mobs;
 	ArrayList<Planet> planets;
 	int receiverID;
 	
-	Setp(ArrayList<Mob> mobs, ArrayList<Planet> planets, int receiverID)
-	{
+	public Setp(ArrayList<Mob> mobs, ArrayList<Planet> planets, int receiverID){
 		name ="Setp";  //command identifier
 		this.planets = planets;
 		this.mobs = mobs;
@@ -48,27 +45,21 @@ class Setp extends DefaultCommand
 }
 
 //Delta update
-class Delt extends DefaultCommand	
-
-{
+class Delt extends DefaultCommand{
 	ArrayList<Mob> mobs;
 	ArrayList<Planet> planets;
 	
-	Delt()
-	{
+	public Delt(){
 		name ="Delt";  //command identifier
 		planets = new ArrayList<Planet>();
 		mobs = new ArrayList<>();
 	}
 }
 
-
-
-
 //typical command 10-5:1,23,4.
 class MoveHandler extends CommandHandler
 {
-	MoveHandler(MessageServer creator) {
+	public MoveHandler(MessageServer creator) {
 		super(creator);
 		// TODO Auto-generated constructor stub
 	}
@@ -80,7 +71,6 @@ class MoveHandler extends CommandHandler
 	
 	@Override
 	public void Handle(String text) {
-		
 		Move command = messageServer.gson.fromJson(text, Move.class);
 		
 		System.out.println(String.format("Move to [%d ; %d] mobs: %d", command.x, command.y, command.mobs[0])); // if all fine echo back command
@@ -94,49 +84,37 @@ class MoveHandler extends CommandHandler
 		{
 			messageServer.gameplayServer.movePlanetToPoint(command.x, command.y, null, command.mobs);
 		}
-			
 		
-		
-		
-		
-	
 		String temp = messageServer.gson.toJson(command);
 		
 		temp = temp.replaceAll("\n", "");
 		temp = temp.replaceAll(" ", "");
 		messageServer.addToOutputQueue(temp);
-		
 	}
-
-
 }
 
-class MovePlanetHandler extends CommandHandler
-{
-
-	MovePlanetHandler(MessageServer creator) {
+class MovePlanetHandler extends CommandHandler{
+	
+	public MovePlanetHandler(MessageServer creator) {
 		super(creator);
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public void Handle(String text) {
-		
 		System.out.println("Command move planet:" + text);
 	}
 }
 
-class AttackMobHandler extends CommandHandler
-{
-
-	AttackMobHandler(MessageServer creator) {
+class AttackMobHandler extends CommandHandler{
+	
+	public AttackMobHandler(MessageServer creator) {
 		super(creator);
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public void Handle(String text) {
-		
 		System.out.println("Command attack by mob:" + text);
 	}
 }
