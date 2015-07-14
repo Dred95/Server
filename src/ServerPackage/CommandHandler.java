@@ -22,9 +22,9 @@ class Move extends DefaultCommand{
 	int x;
 	int y;
 
-	int[]mobs;
+	ArrayList<Integer> mobs;
 	
-	public Move(int x, int y, int[] mobs){
+	public Move(int x, int y, ArrayList<Integer> mobs){
 		name ="Move";  //command identifier
 		this.x = x;
 		this.y = y;
@@ -66,25 +66,18 @@ class MoveHandler extends CommandHandler
 
 	String[] sArray;
 	String substring;
-	int[] mobs;
+	ArrayList<Integer> mobs;
 	int x,y;
 	
 	@Override
 	public void Handle(String text) {
 		Move command = messageServer.gson.fromJson(text, Move.class);
 		
-		System.out.println(String.format("Move to [%d ; %d] mobs: %d", command.x, command.y, command.mobs[0])); // if all fine echo back command
+		System.out.println(String.format("Move to [%d ; %d] mobs: %d", command.x, command.y, 0)); // if all fine echo back command
 		
-		if (command.mobs[0]>49)
-		{
-			messageServer.gameplayServer.moveToPoint(command.x, command.y, null, command.mobs);
-		}
+		messageServer.gameplayServer.moveToPoint(command.x, command.y, null, command.mobs);
 		
-		if (command.mobs[0]<50)
-		{
-			messageServer.gameplayServer.movePlanetToPoint(command.x, command.y, null, command.mobs);
-		}
-		
+		command.From = 0;
 		String temp = messageServer.gson.toJson(command);
 		
 		temp = temp.replaceAll("\n", "");

@@ -53,7 +53,7 @@ public class MessageServer {
 		thread1.setDaemon(true);
 		thread1.start();
 		System.out.println("Thread 1 started");
-		socketl1.Send("From0Setp1:");
+		
 		
 		socketl2 = new SocketListener(this, server);
 		thread2 = new Thread(socketl2,"thread2");
@@ -64,6 +64,8 @@ public class MessageServer {
 		commandHandlers.put("MovM", new MoveHandler(this) );
 		commandHandlers.put("MovP", new MovePlanetHandler(this) );
 		commandHandlers.put("AtkM", new AttackMobHandler(this) );
+		
+
 		
 	}
 	/*Test commands
@@ -147,6 +149,11 @@ class SocketListener implements Runnable{
 			System.out.println("Thread Initialized "+Thread.currentThread().getName());
 			in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			out = new PrintWriter(client.getOutputStream(),true);
+			
+			if (Thread.currentThread().getName().equals("thread2"))
+			{
+				gameServer.gameplayServer.startGame();
+			}
 			
 			while ((input = in.readLine()) != null ) {
 				if (input.equalsIgnoreCase("exit")) break;

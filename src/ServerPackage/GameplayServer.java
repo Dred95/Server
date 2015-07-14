@@ -1,13 +1,14 @@
 package ServerPackage;
 import java.util.ArrayList;
 import java.util.Iterator;
-
+import java.util.Timer;
+import java.util.TimerTask;
 import GameplayPackage.Circle;
 import GameplayPackage.Mob;
 import GameplayPackage.Planet;
 import GameplayPackage.SuperFigure;
 
-public class GameplayServer {
+public final class GameplayServer {
 		private MessageServer messageServer;
 	    //  private Stack<Planet> planets;
 	    private ArrayList<Mob> mobs = new ArrayList<Mob>();
@@ -17,6 +18,17 @@ public class GameplayServer {
 	    private int size = 20;
 	    private Delt deltaUpdate;
 	    public Utils utils;
+	    
+	    private Timer myTimer = new Timer(); // Создаем таймер
+	    
+	   private final class timerUpdate extends TimerTask {
+
+			@Override
+			public void run() 
+			{
+				update(0.033f);
+			}
+	    }
 	    
 	    public ArrayList<Mob> getMobs(){
 	    	return mobs;
@@ -44,13 +56,13 @@ public class GameplayServer {
 	        timeToControl = 5;
 	        timeToRespawn = 1;
 
-	        startGame();
+	     
 	    }
 
 	    /**
 	     * Start actions(Server part!)
 	     */
-	    private void startGame(){
+	    public void startGame(){
 	    	utils = new Utils();
 	        
 	    	int planetID = utils.GetNewPlanetID();
@@ -69,6 +81,8 @@ public class GameplayServer {
 	    	
 	    	setupConfig.receiverID = 2;
 	    	messageServer.SendTo(2, utils.CreateSetupConfig(setupConfig));
+	    	
+	    	myTimer.schedule(new timerUpdate(), 0, 33);
 	    }
 
 	    /**
@@ -90,14 +104,18 @@ public class GameplayServer {
 	     * @param delta - delta time
 	     */
 	    public void update(float delta) {
+	    	//System.out.println("прошло 0.03 секунды и сервер до сих пор жив");
+	    	
 	    	deltaUpdate = new Delt();
 	    	
 	        for (Planet planet : planets) {
 	            planet.update(this, delta);
+
 	            if(planet.isNewMobRespawn()){
 	                respawnToPlanet(planet);
 	            }
 	            planet.setInvader(whoIsInvader(planet));
+	            
 	            if(planet.isNewOwner()){
 	            	deltaUpdate.planets.add(planet);
 	            }
@@ -105,6 +123,7 @@ public class GameplayServer {
 	        Iterator<Mob> iter = mobs.iterator();
 	        while (iter.hasNext()) {
 	        	Mob mob = iter.next();
+	        	
 	            if(mob.isRemove()){
 	            	deltaUpdate.mobs.add(mob);
 	                iter.remove();
@@ -113,19 +132,28 @@ public class GameplayServer {
 	            }
 	        }
 	        
-	        String text = utils.CreateDeltaUpdate(deltaUpdate);
-	        text = utils.DeleteSpaces(text);
-	        messageServer.addToOutputQueue(text);
+	        if (deltaUpdate.mobs.size()>0 || deltaUpdate.planets.size()>0)
+	        {
+	        	String text = utils.CreateDeltaUpdate(deltaUpdate);
+	 	        text = utils.DeleteSpaces(text);
+	 	        messageServer.addToOutputQueue(text);	
+	        }
+	        
+	       
 	    }
 
 	    private void respawnToPlanet(Planet planet){
+	    
+	    	planet.resetMobRestpawn();
 	        float radius = planet.getFigure().radius + 2*mobRadius;
 	        boolean isAdded = false;
 	        int number = 0;
 	        while(!isAdded) {
+	        	
 	            if(number%size==0){
 	                radius += 4*mobRadius;
 	            }
+	          
 	            isAdded = true;
 	            double angle = (2 * Math.PI) / size * number;
 	            float posX = (float) (planet.getFigure().x + radius * Math.cos(angle));
@@ -137,8 +165,9 @@ public class GameplayServer {
 	                    break;
 	                }
 	            }
+	            
 	            if(isAdded) {
-	            	Mob newMob = new Mob(mobs.size(), posX, posY, mobRadius, HP, reloadTime, attackRadius, damage, planet.getOwnerID());
+	            	Mob newMob = new Mob(utils.GetNewMobID(), posX, posY, mobRadius, HP, reloadTime, attackRadius, damage, planet.getOwnerID());
 	            	deltaUpdate.mobs.add(newMob);
 	                mobs.add(newMob);
 	            }
@@ -185,23 +214,20 @@ public class GameplayServer {
 	     * @param newY - target position y
 	     * @param target - target
 	     */
-	    public void moveToPoint(float newX, float newY, SuperFigure target, int[] IDarray){
-	        for(Mob mob: mobs){
-	            if(mob.getIsSelected()){
-		    		for (int i = 0; i < IDarray.length; i++){	
-		    			mob.setNextPosition(newX, newY, target);
-		    		}
-	            }
-	        }
-	    }
-
-	    public void movePlanetToPoint(float newX, float newY, SuperFigure target, int[] IDarray){
-	        for(Planet planet: planets){
-	    		for (int i = 0; i < IDarray.length; i++){	
-		        	if (planet.getID() == IDarray[i]){
-		        		planet.setNextPosition(newX, newY, target);
-		        	}
-	    		}
+	    public void moveToPoint(float newX, float newY, SuperFigure target, ArrayList<Integer> IDarray){
+	    	for(Mob mob: mobs)
+	    	{
+		    	if(IDarray.contains(mob.getID()))
+		    	{
+		    		mob.setNextPosition(newX, newY, target);
+		    	}
+	    	}
+	    	for(Planet planet: planets)
+	    	{
+		    	if (IDarray.contains(planet.getID()))
+		    	{
+		    		planet.setNextPosition(newX, newY, target);
+		    	}
 	    	}
 	    }
 }

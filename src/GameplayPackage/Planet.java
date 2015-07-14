@@ -36,6 +36,7 @@ public class Planet extends SuperFigure{
             } else {
                 isNewMobRespawn = true;
                 timeToRespawn = gameWorld.getTimeToRespawn();
+                System.out.println("до респауна "+ timeToRespawn);
             }
         }
         if (invader != Utils.NEUTRAL_OWNER_ID) {
@@ -96,6 +97,11 @@ public class Planet extends SuperFigure{
 
     public boolean isNewMobRespawn() {
         return isNewMobRespawn;
+    }
+    
+    public void resetMobRestpawn()
+    {
+    	isNewMobRespawn = false;
     }
 
     public void setInvader(int invader) {

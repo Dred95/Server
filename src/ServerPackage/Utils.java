@@ -22,10 +22,13 @@ public class Utils {
 	}
 	
 	public int GetNewPlanetID(){
+		
 		return ++lastPlanetID;
 	}
 	
 	public int GetNewMobID(){
+
+		System.out.println("id = "+lastMobID);
 		return ++lastMobID;
 	}
 	
