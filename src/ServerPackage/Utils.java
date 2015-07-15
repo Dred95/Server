@@ -21,6 +21,10 @@ public class Utils {
 		return gson.toJson(delt);	
 	}
 	
+	public String CreatePing(int num){
+		return gson.toJson(new PingCommand(num));	
+	}
+	
 	public int GetNewPlanetID(){
 		
 		return ++lastPlanetID;

@@ -18,6 +18,7 @@ public final class GameplayServer {
 	    private int size = 20;
 	    private Delt deltaUpdate;
 	    public Utils utils;
+	    private long time,ping1,ping2;
 	    
 	    private Timer myTimer = new Timer(); // Создаем таймер
 	    
@@ -29,6 +30,20 @@ public final class GameplayServer {
 				update(0.033f);
 			}
 	    }
+	   
+	   public void SetPing(int ID)
+	   {
+		   if(ID == 1)
+		   {
+			   ping1 = System.currentTimeMillis() - time;
+		   }else if( ID == 2)
+		   {
+			   ping2 = System.currentTimeMillis() - time;
+		   } else
+		   {
+			   System.out.println("SetPing: wrong id: "+ID);
+		   }
+	   }
 	    
 	    public ArrayList<Mob> getMobs(){
 	    	return mobs;
@@ -55,7 +70,7 @@ public final class GameplayServer {
 	        planetRadius = 30;
 	        timeToControl = 5;
 	        timeToRespawn = 1;
-
+	        
 	     
 	    }
 
@@ -81,6 +96,10 @@ public final class GameplayServer {
 	    	
 	    	setupConfig.receiverID = 2;
 	    	messageServer.SendTo(2, utils.CreateSetupConfig(setupConfig));
+	    	
+	    	time = System.currentTimeMillis();
+	    	messageServer.SendTo(1, utils.CreatePing(1));
+	    	messageServer.SendTo(12, utils.CreatePing(1));
 	    	
 	    	myTimer.schedule(new timerUpdate(), 0, 33);
 	    }

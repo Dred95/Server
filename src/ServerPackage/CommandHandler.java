@@ -18,6 +18,36 @@ class DefaultCommand{
 	int From = 0;
 }
 
+class PingCommand extends DefaultCommand
+{
+	int number = 0;
+	public PingCommand (int number)
+	{
+		this.number = number;
+		name = "Ping";
+	}
+	
+}
+
+class PingHandler extends CommandHandler
+{
+
+	public PingHandler(MessageServer creator) {
+		super(creator);
+		
+	}
+
+	@Override
+	public void Handle(String text) {
+		// TODO Auto-generated method stub
+		PingCommand command = messageServer.gson.fromJson(text, PingCommand.class);
+		messageServer.gameplayServer.SetPing(command.From);
+		
+	}
+	
+}
+
+
 class Move extends DefaultCommand{
 	int x;
 	int y;
