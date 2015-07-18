@@ -13,6 +13,7 @@ public final class GameplayServer {
 	    //  private Stack<Planet> planets;
 	    private ArrayList<Mob> mobs = new ArrayList<Mob>();
 	    private ArrayList<Planet> planets = new ArrayList<Planet>();
+        private ArrayList<Integer> selectedID = new ArrayList<Integer>();
 	    private float mobRadius, HP, reloadTime, attackRadius, damage;
 	    private float planetRadius, timeToControl, timeToRespawn;
 	    private int size = 20;
@@ -69,7 +70,7 @@ public final class GameplayServer {
 	        //Planet's variables
 	        planetRadius = 30;
 	        timeToControl = 5;
-	        timeToRespawn = 1;
+	        timeToRespawn = 10;
 	        
 	     
 	    }
@@ -81,10 +82,10 @@ public final class GameplayServer {
 	    	utils = new Utils();
 	        
 	    	int planetID = utils.GetNewPlanetID();
-	    	planets.add((new Planet(planetID, 5, 5, planetRadius, timeToControl, timeToRespawn, 1)));
+	    	planets.add((new Planet(planetID, 200, 200, planetRadius, timeToControl, timeToRespawn, 1)));
 	    	
 	    	planetID = utils.GetNewPlanetID();
-	    	planets.add(new Planet(planetID, 200, 200, planetRadius, timeToControl, timeToRespawn, 2));
+	    	planets.add(new Planet(planetID, 600, 200, planetRadius, timeToControl, timeToRespawn, 2));
 	    	
 	        mobs = new ArrayList<Mob>();
 	        for (int i = 0; i < planets.size(); i++){
@@ -99,7 +100,6 @@ public final class GameplayServer {
 	    	
 	    	time = System.currentTimeMillis();
 	    	messageServer.SendTo(1, utils.CreatePing(1));
-	    	messageServer.SendTo(12, utils.CreatePing(1));
 	    	
 	    	myTimer.schedule(new timerUpdate(), 0, 33);
 	    }
@@ -157,8 +157,6 @@ public final class GameplayServer {
 	 	        text = utils.DeleteSpaces(text);
 	 	        messageServer.addToOutputQueue(text);	
 	        }
-	        
-	       
 	    }
 
 	    private void respawnToPlanet(Planet planet){
@@ -233,20 +231,22 @@ public final class GameplayServer {
 	     * @param newY - target position y
 	     * @param target - target
 	     */
-	    public void moveToPoint(float newX, float newY, SuperFigure target, ArrayList<Integer> IDarray){
-	    	for(Mob mob: mobs)
-	    	{
-		    	if(IDarray.contains(mob.getID()))
-		    	{
-		    		mob.setNextPosition(newX, newY, target);
-		    	}
-	    	}
-	    	for(Planet planet: planets)
-	    	{
-		    	if (IDarray.contains(planet.getID()))
-		    	{
-		    		planet.setNextPosition(newX, newY, target);
-		    	}
-	    	}
+	    public void moveToPoint(float newX, float newY, SuperFigure target, boolean itIsMine){
+	        for(Mob mob: mobs){
+	            if(selectedID.contains(mob.getID())){
+                    mob.setIsSelected(true);
+	                mob.setNextPosition(newX, newY,target);
+	            }
+	        }
+	        for(Planet planet: planets){
+	            if(selectedID.contains(planet.getID())){
+                    planet.setIsSelected(true);
+	                planet.setNextPosition(newX, newY,target);
+	            }
+	        }
 	    }
+	    
+	    public void setSelectedID(ArrayList<Integer> selectedID) {
+			this.selectedID = selectedID;
+		}
 }

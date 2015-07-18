@@ -61,12 +61,7 @@ public class MessageServer {
 		thread2.start();
 		System.out.println("Thread 2 started");
 		
-		commandHandlers.put("MovM", new MoveHandler(this) );
-		commandHandlers.put("MovP", new MovePlanetHandler(this) );
-		commandHandlers.put("AtkM", new AttackMobHandler(this) );
-		
-
-		
+		commandHandlers.put("Move", new MoveHandler(this));
 	}
 	/*Test commands
 {  "x": 5,  "y": 10,  "mobs": [    13,    14  ],  "name": "MovM", "From": 1}

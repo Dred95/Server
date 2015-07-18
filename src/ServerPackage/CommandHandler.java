@@ -47,27 +47,28 @@ class PingHandler extends CommandHandler
 	
 }
 
-
 class Move extends DefaultCommand{
-	int x;
-	int y;
+	public float x;
+	public float y;
+	public SuperFigure superFigure;
+	public ArrayList<Integer> mobs;
 
-	ArrayList<Integer> mobs;
-	
-	public Move(int x, int y, ArrayList<Integer> mobs){
-		name ="Move";  //command identifier
+	public Move(float x, float y, SuperFigure superFigure, ArrayList<Integer> mobs){
+		name = "Move";
 		this.x = x;
 		this.y = y;
+		this.superFigure = superFigure;
 		this.mobs = mobs;
 	}
 }
+
 class Setp extends DefaultCommand{
-	ArrayList<Mob> mobs;
-	ArrayList<Planet> planets;
-	int receiverID;
-	
+	public ArrayList<Mob> mobs;
+	public ArrayList<Planet> planets;
+	public int receiverID;
+
 	public Setp(ArrayList<Mob> mobs, ArrayList<Planet> planets, int receiverID){
-		name ="Setp";  //command identifier
+		name ="Setp";
 		this.planets = planets;
 		this.mobs = mobs;
 		this.receiverID = receiverID;
@@ -86,26 +87,18 @@ class Delt extends DefaultCommand{
 	}
 }
 
-//typical command 10-5:1,23,4.
 class MoveHandler extends CommandHandler
 {
 	public MoveHandler(MessageServer creator) {
 		super(creator);
-		// TODO Auto-generated constructor stub
 	}
-
-	String[] sArray;
-	String substring;
-	ArrayList<Integer> mobs;
-	int x,y;
 	
 	@Override
 	public void Handle(String text) {
 		Move command = messageServer.gson.fromJson(text, Move.class);
 		
-		System.out.println(String.format("Move to [%d ; %d] mobs: %d", command.x, command.y, 0)); // if all fine echo back command
-		
-		messageServer.gameplayServer.moveToPoint(command.x, command.y, null, command.mobs);
+		messageServer.gameplayServer.setSelectedID(command.mobs);
+		messageServer.gameplayServer.moveToPoint(command.x, command.y, command.superFigure, false);
 		
 		command.From = 0;
 		String temp = messageServer.gson.toJson(command);
