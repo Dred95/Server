@@ -20,8 +20,8 @@ public class Planet extends SuperFigure{
      * @param radius - radius
      * @param hostName - player who owns the object
      */
-    public Planet(int ID, float x, float y, float radius, float timeToControl, float timeToRespawn, int ownerID) {
-        super(ID, x, y, radius, ownerID);
+    public Planet(float x, float y, float radius, float timeToControl, float timeToRespawn, int ownerID) {
+        super(x, y, radius, ownerID);
         this.timeToControl = timeToControl;
         this.timeToRespawn = timeToRespawn;
         isNewMobRespawn = false;
@@ -39,7 +39,7 @@ public class Planet extends SuperFigure{
                 System.out.println("до респауна "+ timeToRespawn);
             }
         }
-        if (invader != Utils.NEUTRAL_OWNER_ID) {
+        if (invader != getOwnerID()) {
             if (getOwnerID() != Utils.NEUTRAL_OWNER_ID) {
                 if (timeToControl >= 0) {
                     timeToControl -= delta;
@@ -54,7 +54,7 @@ public class Planet extends SuperFigure{
                     timeToControl -= delta;
                 } else {
                     setOwnerID(invader);
-                    isNewOwner = false;
+                    isNewOwner = true;
                     timeToControl = gameWorld.getTimeToControl();
                 }
             }
@@ -110,5 +110,9 @@ public class Planet extends SuperFigure{
     
     public boolean isNewOwner() {
 		return isNewOwner;
+	}
+    
+    public void setNewOwner(boolean isNewOwner) {
+		this.isNewOwner = isNewOwner;
 	}
 }

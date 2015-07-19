@@ -1,5 +1,7 @@
 package GameplayPackage;
 
+import java.util.Map;
+
 import ServerPackage.GameplayServer;
 
 /**
@@ -7,6 +9,7 @@ import ServerPackage.GameplayServer;
  */
 public class Mob extends SuperFigure {
     private float HP;
+    private int atackedMob;
     private float damage;
     private float reloadTime;
     private float atackRadius;
@@ -20,11 +23,12 @@ public class Mob extends SuperFigure {
      * @param HP - HP's mob
      * @param ownerID - owner id
      */
-    public Mob(int ID, float x, float y, float radius, float HP, float reloadTime, float atackRadius, float damage, int ownerID) {
-        super(ID, x, y, radius, ownerID);
+    public Mob(float x, float y, float radius, float HP, float reloadTime, float atackRadius, float damage, int ownerID) {
+        super(x, y, radius, ownerID);
         this.HP = HP;
         this.damage = damage;
         this.atackRadius = atackRadius;
+        atackedMob = -1;
     }
 
     @Override
@@ -32,15 +36,28 @@ public class Mob extends SuperFigure {
         if(reloadTime >= 0){
             reloadTime -= delta;
         } else{
-            for(Mob attackMob: gameWorld.getMobs()){
-                if(attackMob.getFigure().overlaps(new Circle(getFigure().x, getFigure().y, getAtackRadius())) && attackMob.getOwnerID() != getOwnerID()) {
-                    attackMob.setHP(attackMob.getHP() - getDamage());
+        	if(atackedMob == -1){
+                for(Map.Entry<Integer, Mob> attackMob: gameWorld.getMobs().entrySet()){
+	                if(attackMob.getValue().getFigure().overlaps(new Circle(getFigure().x, getFigure().y, getAtackRadius())) && attackMob.getValue().getOwnerID() != getOwnerID()) {
+	                    atackedMob = attackMob.getKey();
+	                	attackMob.getValue().setHP(attackMob.getValue().getHP() - getDamage());
+	                    reloadTime = gameWorld.getReloadTime();
+	                    if(attackMob.getValue().getHP() < 0){
+	                        attackMob.getValue().setRemove(true);
+	                    }
+	                }
+	            }
+        	} else {
+        		if(gameWorld.getMobs().get(atackedMob).getFigure().overlaps(new Circle(getFigure().x, getFigure().y, atackRadius))) {
+        			gameWorld.getMobs().get(atackedMob).setHP(gameWorld.getMobs().get(atackedMob).getHP() - getDamage());
                     reloadTime = gameWorld.getReloadTime();
-                    if(attackMob.getHP() < 0){
-                        attackMob.setRemove(true);
+                    if(gameWorld.getMobs().get(atackedMob).getHP() < 0){
+                    	gameWorld.getMobs().get(atackedMob).setRemove(true);
                     }
+                } else{
+                	atackedMob = -1;
                 }
-            }
+        	}
         }
         super.update(gameWorld, delta);
     }
@@ -99,5 +116,13 @@ public class Mob extends SuperFigure {
     
     public boolean isRemove() {
 		return isRemove;
+	}
+    
+    public void setAtackedMob(int atackedMob) {
+		this.atackedMob = atackedMob;
+	}
+    
+    public int getAtackedMob() {
+		return atackedMob;
 	}
 }

@@ -9,11 +9,10 @@ public class SuperFigure {
     private Circle figure;
     private float stepX, stepY;
     private float newX, newY;
-    private SuperFigure target;
     private int ownerID;
     private Boolean isSelected;
     private Boolean isMove;
-    private int ID;
+	private int targetID;
 
     /**
      * Constructor
@@ -22,9 +21,7 @@ public class SuperFigure {
      * @param radius - radius
      * @param ownerID - player's id who owns the object
      */
-    public SuperFigure(int ID, float x, float y, float radius, int ownerID){
-        this.ID = ID;
-       
+    public SuperFigure(float x, float y, float radius, int ownerID){
         figure = new Circle(x, y, radius);
         isSelected = false;
         isMove = false;
@@ -33,38 +30,35 @@ public class SuperFigure {
     
 
     public void update(GameplayServer gameWorld, float delta){
-        moving();
-    }
-
-    /**
-     * Method for moving to target
-     */
-    public void moving() {
-        if (isMove) {
-            if(target == null) {
+    	if (isMove) {
+            if(targetID == -1) {
                 if (!figure.overlaps(new Circle(newX, newY, figure.radius))) {
                     figure.x += stepX;
                     figure.y += stepY;
+                } else {
+                    isMove = false;
                 }
             } else {
-                if (!figure.overlaps(target.getFigure())) {
-                    figure.x += (target.getFigure().x - figure.x)/200;
-                    figure.y += (target.getFigure().y - figure.y)/200;
+                Circle targetFigure = gameWorld.getPlanets().containsKey(targetID)?gameWorld.getPlanets().get(targetID).getFigure():gameWorld.getMobs().get(targetID).getFigure();
+                if (!figure.overlaps(targetFigure)) {
+                    figure.x += (targetFigure.x - figure.x)/200;
+                    figure.y += (targetFigure.y - figure.y)/200;
                 }
             }
         }
     }
 
-    public void setNextPosition(float newX, float newY, SuperFigure target){
-        if(isSelected){
+    public void setNextPosition(float newX, float newY, int targetID){
+    	if(isSelected){
+    		this.targetID = targetID;
             stepX = (newX - figure.x)/200;
             stepY = (newY - figure.y)/200;
             isSelected = false;
-            if(target == null) {
+            if(targetID == -1) {
                 this.newX = newX;
                 this.newY = newY;
             } else {
-                this.target = target;
+                this.targetID = targetID;
             }
             isMove = true;
         }
@@ -189,29 +183,13 @@ public class SuperFigure {
     public void setNewY(float newY) {
         this.newY = newY;
     }
-
-    /**
-     * Setter for new target
-     * @param target - new target
-     */
-    public void setTarget(SuperFigure target) {
-        this.target = target;
-    }
-
-    /**
-     * Getter for current target
-     * @return - current target
-     */
-    public SuperFigure getTarget() {
-        return target;
-    }
-
-    /**
-     * Getter for ID
-     * @return - ID
-     */
-    public int getID() {
-        return ID;
-    }
+    
+    public int getTargetID() {
+		return targetID;
+	}
+    
+    public void setTargetID(int targetID) {
+		this.targetID = targetID;
+	}
 
 }
