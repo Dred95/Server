@@ -30,39 +30,28 @@ public class Planet extends SuperFigure{
     
     @Override
     public void update(GameplayServer gameWorld, float delta) {
-        if (getOwnerID() != 0) {
+        if (getOwnerID() != Utils.NEUTRAL_OWNER_ID) {
             if (timeToRespawn >= 0) {
                 timeToRespawn -= delta;
             } else {
                 isNewMobRespawn = true;
                 timeToRespawn = gameWorld.getTimeToRespawn();
-                System.out.println("до респауна "+ timeToRespawn);
             }
         }
-        if (invader != getOwnerID()) {
-            if (getOwnerID() != Utils.NEUTRAL_OWNER_ID) {
-                if (timeToControl >= 0) {
-                    timeToControl -= delta;
-                } else {
-                    setIsMove(false);
-                    isNewOwner = true;
-                    setOwnerID(Utils.NEUTRAL_OWNER_ID);;
-                    timeToControl = gameWorld.getTimeToControl();
-                }
+        if (invader != -1) {
+            if (timeToControl >= 0) {
+                timeToControl -= delta;
             } else {
-                if (getTimeToControl() >= 0) {
-                    timeToControl -= delta;
-                } else {
-                    setOwnerID(invader);
-                    isNewOwner = true;
-                    timeToControl = gameWorld.getTimeToControl();
-                }
+                setIsMove(false);
+                setIsSelected(false);
+                isNewOwner = true;
+                setOwnerID(invader);
+                timeToControl = gameWorld.getTimeToControl();
             }
         }
-
         super.update(gameWorld, delta);
     }
-
+    
     /**
      * Time for grab planet
      * @return - left time

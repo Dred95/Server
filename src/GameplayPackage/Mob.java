@@ -9,11 +9,12 @@ import ServerPackage.GameplayServer;
  */
 public class Mob extends SuperFigure {
     private float HP;
-    private int atackedMob;
+    private int attackedMob;
     private float damage;
     private float reloadTime;
     private float atackRadius;
     private boolean isRemove;
+    private boolean isAttack;
 
     /**
      * Constructor
@@ -28,7 +29,8 @@ public class Mob extends SuperFigure {
         this.HP = HP;
         this.damage = damage;
         this.atackRadius = atackRadius;
-        atackedMob = -1;
+        attackedMob = -1;
+        isAttack = false;
     }
 
     @Override
@@ -36,10 +38,11 @@ public class Mob extends SuperFigure {
         if(reloadTime >= 0){
             reloadTime -= delta;
         } else{
-        	if(atackedMob == -1){
+        	if(attackedMob == -1){
                 for(Map.Entry<Integer, Mob> attackMob: gameWorld.getMobs().entrySet()){
 	                if(attackMob.getValue().getFigure().overlaps(new Circle(getFigure().x, getFigure().y, getAtackRadius())) && attackMob.getValue().getOwnerID() != getOwnerID()) {
-	                    atackedMob = attackMob.getKey();
+	                    isAttack = true;
+	                	attackedMob = attackMob.getKey();
 	                	attackMob.getValue().setHP(attackMob.getValue().getHP() - getDamage());
 	                    reloadTime = gameWorld.getReloadTime();
 	                    if(attackMob.getValue().getHP() < 0){
@@ -47,16 +50,21 @@ public class Mob extends SuperFigure {
 	                    }
 	                }
 	            }
-        	} else {
-        		if(gameWorld.getMobs().get(atackedMob).getFigure().overlaps(new Circle(getFigure().x, getFigure().y, atackRadius))) {
-        			gameWorld.getMobs().get(atackedMob).setHP(gameWorld.getMobs().get(atackedMob).getHP() - getDamage());
+        	} else if(gameWorld.getMobs().containsKey(attackedMob)) {
+        		if(gameWorld.getMobs().get(attackedMob).getFigure().overlaps(new Circle(getFigure().x, getFigure().y, atackRadius))) {
+        			isAttack = true;
+        			gameWorld.getMobs().get(attackedMob).setHP(gameWorld.getMobs().get(attackedMob).getHP() - getDamage());
                     reloadTime = gameWorld.getReloadTime();
-                    if(gameWorld.getMobs().get(atackedMob).getHP() < 0){
-                    	gameWorld.getMobs().get(atackedMob).setRemove(true);
+                    if(gameWorld.getMobs().get(attackedMob).getHP() < 0){
+                    	gameWorld.getMobs().get(attackedMob).setRemove(true);
                     }
                 } else{
-                	atackedMob = -1;
+        			isAttack = true;
+        			attackedMob = -1;
                 }
+        	} else {
+    			isAttack = true;
+    			attackedMob = -1;
         	}
         }
         super.update(gameWorld, delta);
@@ -118,11 +126,19 @@ public class Mob extends SuperFigure {
 		return isRemove;
 	}
     
-    public void setAtackedMob(int atackedMob) {
-		this.atackedMob = atackedMob;
+    public int getAttackedMob() {
+		return attackedMob;
 	}
     
-    public int getAtackedMob() {
-		return atackedMob;
+    public void setAttackedMob(int attackerMob) {
+		this.attackedMob = attackerMob;
+	}
+    
+    public boolean isAttack() {
+		return isAttack;
+	}
+    
+    public void setAttack(boolean isAttack) {
+		this.isAttack = isAttack;
 	}
 }

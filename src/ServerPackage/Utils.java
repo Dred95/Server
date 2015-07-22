@@ -13,16 +13,8 @@ public class Utils {
 		gson = new GsonBuilder().setPrettyPrinting().create();
 	}
 	
-	public String CreateSetupConfig(Setp setp){
-		return gson.toJson(setp);
-	}
-	
-	public String CreateDeltaUpdate(Delt delt){
-		return gson.toJson(delt);	
-	}
-	
-	public String CreatePing(int num){
-		return gson.toJson(new PingCommand(num));	
+	public String createOutputString(DefaultCommand command){
+		return deleteSpaces(gson.toJson(command));
 	}
 	
 	public int GetNewPlanetID(){
@@ -36,7 +28,7 @@ public class Utils {
 		return ++lastMobID;
 	}
 	
-	public String DeleteSpaces(String text){
+	public String deleteSpaces(String text){
 		text = text.replaceAll("\n", "");
 		text = text.replaceAll(" ", "");
 		return text;
