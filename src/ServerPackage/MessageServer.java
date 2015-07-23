@@ -1,6 +1,7 @@
 package ServerPackage;
 import java.io.*;
 import java.net.*;
+import java.nio.channels.ServerSocketChannel;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -44,7 +45,8 @@ public class MessageServer {
 	 private  void InitializeServer() throws IOException{
 		utils = new Utils();
 		System.out.println("Start Server");
-		server = new ServerSocket(7070);		
+		server = new ServerSocket(7070);	
+		System.out.println(server.getLocalSocketAddress());
 	
 		gson = new GsonBuilder().setPrettyPrinting().create();
 		
@@ -62,6 +64,7 @@ public class MessageServer {
 		System.out.println("Thread 2 started");
 		
 		commandHandlers.put("Move", new MoveHandler(this));
+		commandHandlers.put("Ping", new PingHandler(this));
 	}
 	/*Test commands
 {  "x": 5,  "y": 10,  "mobs": [    13,    14  ],  "name": "MovM", "From": 1}
@@ -79,10 +82,10 @@ public class MessageServer {
 	 
 	public void SendTo(int receiverID, String message){
 		if (receiverID == 1){
-			message = utils.DeleteSpaces(message);
+			message = utils.deleteSpaces(message);
 			socketl1.Send(message);
 		} else if(receiverID == 2){
-			message = utils.DeleteSpaces(message);
+			message = utils.deleteSpaces(message);
 			socketl2.Send(message);
 		}else {
 			System.out.println("Wrong receiver ID: "+ receiverID);
