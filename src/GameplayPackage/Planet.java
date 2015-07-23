@@ -20,8 +20,8 @@ public class Planet extends SuperFigure{
      * @param radius - radius
      * @param hostName - player who owns the object
      */
-    public Planet(int ID, float x, float y, float radius, float timeToControl, float timeToRespawn, int ownerID) {
-        super(ID, x, y, radius, ownerID);
+    public Planet(float x, float y, float radius, float timeToControl, float timeToRespawn, int ownerID) {
+        super(x, y, radius, ownerID);
         this.timeToControl = timeToControl;
         this.timeToRespawn = timeToRespawn;
         isNewMobRespawn = false;
@@ -38,26 +38,6 @@ public class Planet extends SuperFigure{
                 timeToRespawn = gameWorld.getTimeToRespawn();
             }
         }
-<<<<<<< HEAD
-        if (invader != Utils.NEUTRAL_OWNER_ID) {
-            if (getOwnerID() != Utils.NEUTRAL_OWNER_ID) {
-                if (timeToControl >= 0) {
-                    timeToControl -= delta;
-                } else {
-                    setIsMove(false);
-                    isNewOwner = true;
-                    setOwnerID(Utils.NEUTRAL_OWNER_ID);;
-                    timeToControl = gameWorld.getTimeToControl();
-                }
-            } else {
-                if (getTimeToControl() >= 0) {
-                    timeToControl -= delta;
-                } else {
-                    setOwnerID(invader);
-                    isNewOwner = false;
-                    timeToControl = gameWorld.getTimeToControl();
-                }
-=======
         if (invader != -1) {
             if (timeToControl >= 0) {
                 timeToControl -= delta;
@@ -67,7 +47,6 @@ public class Planet extends SuperFigure{
                 isNewOwner = true;
                 setOwnerID(invader);
                 timeToControl = gameWorld.getTimeToControl();
->>>>>>> origin/master
             }
         }
         super.update(gameWorld, delta);
@@ -120,5 +99,9 @@ public class Planet extends SuperFigure{
     
     public boolean isNewOwner() {
 		return isNewOwner;
+	}
+    
+    public void setNewOwner(boolean isNewOwner) {
+		this.isNewOwner = isNewOwner;
 	}
 }

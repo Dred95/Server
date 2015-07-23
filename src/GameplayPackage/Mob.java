@@ -1,5 +1,7 @@
 package GameplayPackage;
 
+import java.util.Map;
+
 import ServerPackage.GameplayServer;
 
 /**
@@ -7,10 +9,7 @@ import ServerPackage.GameplayServer;
  */
 public class Mob extends SuperFigure {
     private float HP;
-<<<<<<< HEAD
-=======
     private int attackedMob;
->>>>>>> origin/master
     private float damage;
     private float reloadTime;
     private float atackRadius;
@@ -25,16 +24,13 @@ public class Mob extends SuperFigure {
      * @param HP - HP's mob
      * @param ownerID - owner id
      */
-    public Mob(int ID, float x, float y, float radius, float HP, float reloadTime, float atackRadius, float damage, int ownerID) {
-        super(ID, x, y, radius, ownerID);
+    public Mob(float x, float y, float radius, float HP, float reloadTime, float atackRadius, float damage, int ownerID) {
+        super(x, y, radius, ownerID);
         this.HP = HP;
         this.damage = damage;
         this.atackRadius = atackRadius;
-<<<<<<< HEAD
-=======
         attackedMob = -1;
         isAttack = false;
->>>>>>> origin/master
     }
 
     @Override
@@ -42,17 +38,6 @@ public class Mob extends SuperFigure {
         if(reloadTime >= 0){
             reloadTime -= delta;
         } else{
-<<<<<<< HEAD
-            for(Mob attackMob: gameWorld.getMobs()){
-                if(attackMob.getFigure().overlaps(new Circle(getFigure().x, getFigure().y, getAtackRadius())) && attackMob.getOwnerID() != getOwnerID()) {
-                    attackMob.setHP(attackMob.getHP() - getDamage());
-                    reloadTime = gameWorld.getReloadTime();
-                    if(attackMob.getHP() < 0){
-                        attackMob.setRemove(true);
-                    }
-                }
-            }
-=======
         	if(attackedMob == -1){
                 for(Map.Entry<Integer, Mob> attackMob: gameWorld.getMobs().entrySet()){
 	                if(attackMob.getValue().getFigure().overlaps(new Circle(getFigure().x, getFigure().y, getAtackRadius())) && attackMob.getValue().getOwnerID() != getOwnerID()) {
@@ -81,7 +66,6 @@ public class Mob extends SuperFigure {
     			isAttack = true;
     			attackedMob = -1;
         	}
->>>>>>> origin/master
         }
         super.update(gameWorld, delta);
     }
@@ -141,8 +125,6 @@ public class Mob extends SuperFigure {
     public boolean isRemove() {
 		return isRemove;
 	}
-<<<<<<< HEAD
-=======
     
     public int getAttackedMob() {
 		return attackedMob;
@@ -159,5 +141,4 @@ public class Mob extends SuperFigure {
     public void setAttack(boolean isAttack) {
 		this.isAttack = isAttack;
 	}
->>>>>>> origin/master
 }
