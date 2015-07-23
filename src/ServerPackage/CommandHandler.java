@@ -1,7 +1,5 @@
 package ServerPackage;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import GameplayPackage.*;
 
@@ -52,24 +50,24 @@ class PingHandler extends CommandHandler
 class Move extends DefaultCommand{
 	public float x;
 	public float y;
-	public int targetID;
+	public SuperFigure superFigure;
 	public ArrayList<Integer> mobs;
 
-	public Move(float x, float y, int targetID, ArrayList<Integer> mobs){
+	public Move(float x, float y, SuperFigure superFigure, ArrayList<Integer> mobs){
 		name = "Move";
 		this.x = x;
 		this.y = y;
-		this.targetID = targetID;
+		this.superFigure = superFigure;
 		this.mobs = mobs;
 	}
 }
 
 class Setp extends DefaultCommand{
-	public Map<Integer, Mob> mobs;
-	public Map<Integer, Planet> planets;
+	public ArrayList<Mob> mobs;
+	public ArrayList<Planet> planets;
 	public int receiverID;
 
-	public Setp(Map<Integer, Mob> mobs, Map<Integer, Planet> planets, int receiverID){
+	public Setp(ArrayList<Mob> mobs, ArrayList<Planet> planets, int receiverID){
 		name ="Setp";
 		this.planets = planets;
 		this.mobs = mobs;
@@ -77,14 +75,15 @@ class Setp extends DefaultCommand{
 	}
 }
 
+//Delta update
 class Delt extends DefaultCommand{
-	public Map<Integer, Mob> mobs;
-	public Map<Integer, Planet> planets;
+	ArrayList<Mob> mobs;
+	ArrayList<Planet> planets;
 	
 	public Delt(){
 		name ="Delt";  //command identifier
-		planets = new HashMap<Integer, Planet>();
-		mobs = new HashMap<Integer, Mob>();
+		planets = new ArrayList<Planet>();
+		mobs = new ArrayList<>();
 	}
 }
 
@@ -99,7 +98,7 @@ class MoveHandler extends CommandHandler
 		Move command = messageServer.gson.fromJson(text, Move.class);
 		
 		messageServer.gameplayServer.setSelectedID(command.mobs);
-		messageServer.gameplayServer.moveToPoint(command.x, command.y, command.targetID, false);
+		messageServer.gameplayServer.moveToPoint(command.x, command.y, command.superFigure, false);
 		
 		command.From = 0;
 		String temp = messageServer.gson.toJson(command);

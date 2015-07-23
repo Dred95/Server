@@ -1,8 +1,6 @@
 package ServerPackage;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import GameplayPackage.Circle;
@@ -13,8 +11,8 @@ import GameplayPackage.SuperFigure;
 public final class GameplayServer {
 		private MessageServer messageServer;
 	    //  private Stack<Planet> planets;
-	    private Map<Integer, Mob> mobs = new HashMap<Integer, Mob>();
-	    private Map<Integer, Planet> planets;
+	    private ArrayList<Mob> mobs = new ArrayList<Mob>();
+	    private ArrayList<Planet> planets = new ArrayList<Planet>();
         private ArrayList<Integer> selectedID = new ArrayList<Integer>();
 	    private float mobRadius, HP, reloadTime, attackRadius, damage;
 	    private float planetRadius, timeToControl, timeToRespawn;
@@ -48,11 +46,11 @@ public final class GameplayServer {
 		   }
 	   }
 	    
-	    public Map<Integer, Mob> getMobs(){
+	    public ArrayList<Mob> getMobs(){
 	    	return mobs;
 	    }
 	    
-	    public Map<Integer, Planet> getPlanets() {
+	    public ArrayList<Planet> getPlanets() {
 	    	return planets;
 	    }
 	    
@@ -83,15 +81,15 @@ public final class GameplayServer {
 	    public void startGame(){
 	    	utils = new Utils();
 	        
-	    	planets = new HashMap<Integer, Planet>();
 	    	int planetID = utils.GetNewPlanetID();
-	    	planets.put(planetID, new Planet(200, 200, planetRadius, timeToControl, timeToRespawn, 1));
+	    	planets.add((new Planet(planetID, 200, 200, planetRadius, timeToControl, timeToRespawn, 1)));
 	    	
 	    	planetID = utils.GetNewPlanetID();
-	    	planets.put(planetID, new Planet(600, 200, planetRadius, timeToControl, timeToRespawn, 2));
+	    	planets.add(new Planet(planetID, 600, 200, planetRadius, timeToControl, timeToRespawn, 2));
 	    	
-	        for (Map.Entry<Integer, Planet> planet: planets.entrySet()){
-	            addMobsToPlanet(planet.getKey());
+	        mobs = new ArrayList<Mob>();
+	        for (int i = 0; i < planets.size(); i++){
+	            addMobsToPlanet(i);
 	        }
 	        
 	    	Setp setupConfig = new Setp(mobs, planets, 1);
@@ -116,7 +114,7 @@ public final class GameplayServer {
 	 	        float radius = planets.get(planetID).getFigure().radius + mobRadius;
 	 	        float posX = (float) (planets.get(planetID).getFigure().x + radius*Math.cos(angle));
 	 	        float posY = (float) (planets.get(planetID).getFigure().y + radius*Math.sin(angle));
-	 	        mobs.put(mobs.size() + 50, new Mob(posX, posY, mobRadius, HP, reloadTime, attackRadius, damage, planets.get(planetID).getOwnerID()));
+	 	        mobs.add(new Mob(mobs.size() + 50, posX, posY, mobRadius, HP, reloadTime, attackRadius, damage, planets.get(planetID).getOwnerID()));
 	    	}
 	    }
 
@@ -129,26 +127,27 @@ public final class GameplayServer {
 	    	
 	    	deltaUpdate = new Delt();
 	    	
-	        for (Map.Entry<Integer, Planet> planet: planets.entrySet()) {
-	            planet.getValue().update(this, delta);
+	        for (Planet planet : planets) {
+	            planet.update(this, delta);
 
-	            if(planet.getValue().isNewMobRespawn()){
-	                respawnToPlanet(planet.getValue());
+	            if(planet.isNewMobRespawn()){
+	                respawnToPlanet(planet);
 	            }
-	            planet.getValue().setInvader(whoIsInvader(planet.getValue()));
+	            planet.setInvader(whoIsInvader(planet));
 	            
-	            if(planet.getValue().isNewOwner()){
-	            	planet.getValue().setNewOwner(false);
-	            	deltaUpdate.planets.put(planet.getKey(), planet.getValue());
+	            if(planet.isNewOwner()){
+	            	deltaUpdate.planets.add(planet);
 	            }
 	        }
-
-	        for(Map.Entry<Integer, Mob> mob: mobs.entrySet()){
-	            if(mob.getValue().isRemove()){
-	            	deltaUpdate.mobs.put(mob.getKey(), mob.getValue());
-	                mobs.remove(mob.getKey());
+	        Iterator<Mob> iter = mobs.iterator();
+	        while (iter.hasNext()) {
+	        	Mob mob = iter.next();
+	        	
+	            if(mob.isRemove()){
+	            	deltaUpdate.mobs.add(mob);
+	                iter.remove();
 	            } else {
-	                mob.getValue().update(this, delta);
+	                mob.update(this, delta);
 	            }
 	        }
 	        
@@ -176,9 +175,8 @@ public final class GameplayServer {
 	            double angle = (2 * Math.PI) / size * number;
 	            float posX = (float) (planet.getFigure().x + radius * Math.cos(angle));
 	            float posY = (float) (planet.getFigure().y + radius * Math.sin(angle));
-
-	            for(Map.Entry<Integer, Mob> mob: mobs.entrySet()){
-	                if(mob.getValue().getFigure().overlaps(new Circle(posX, posY, mobRadius))){
+	            for(Mob mob: mobs){
+	                if(mob.getFigure().overlaps(new Circle(posX, posY, mobRadius))){
 	                    number++;
 	                    isAdded = false;
 	                    break;
@@ -186,10 +184,9 @@ public final class GameplayServer {
 	            }
 	            
 	            if(isAdded) {
-	            	Mob newMob = new Mob(posX, posY, mobRadius, HP, reloadTime, attackRadius, damage, planet.getOwnerID());
-	            	int id = utils.GetNewMobID();
-	            	deltaUpdate.mobs.put(id, newMob);
-	                mobs.put(id, newMob);
+	            	Mob newMob = new Mob(utils.GetNewMobID(), posX, posY, mobRadius, HP, reloadTime, attackRadius, damage, planet.getOwnerID());
+	            	deltaUpdate.mobs.add(newMob);
+	                mobs.add(newMob);
 	            }
 	        }
 	    }
@@ -200,25 +197,21 @@ public final class GameplayServer {
 	     * @return - enemy name
 	     */
 	    private int whoIsInvader(Planet planet){
-	        int invader = planet.getOwnerID();
-	        for (Mob mob: mobs.values()){
+	        int invader = Utils.NEUTRAL_OWNER_ID;
+	        for (Mob mob: mobs){
 	            if(mob.getFigure().overlaps(new Circle(planet.getFigure().x, planet.getFigure().y, 2*planet.getFigure().radius))){
 	                if(mob.getOwnerID() == planet.getOwnerID()){
-	                    return planet.getOwnerID();
+	                    return Utils.NEUTRAL_OWNER_ID;
 	                }
 	                if(invader == Utils.NEUTRAL_OWNER_ID){
 	                    invader = mob.getOwnerID();
 	                } else if(invader != mob.getOwnerID()){
-	                    return planet.getOwnerID();
+	                    return Utils.NEUTRAL_OWNER_ID;
 	                }
 	            }
 	        }
 	        return invader;
 	    }
-	    
-	    public Delt getDeltaUpdate() {
-			return deltaUpdate;
-		}
 	    
 	    public float getTimeToControl() {
 			return timeToControl;
@@ -238,16 +231,19 @@ public final class GameplayServer {
 	     * @param newY - target position y
 	     * @param target - target
 	     */
-	    public void moveToPoint(float newX, float newY, int targetID, boolean itIsMine){
-	    	for(Integer id: selectedID){
-	    		if(mobs.containsKey(id)){
-	    			mobs.get(id).setIsSelected(true);
-	    			mobs.get(id).setNextPosition(newX, newY, targetID);
-	    		} else if(planets.containsKey(id)){
-	    			planets.get(id).setIsSelected(true);
-	    			planets.get(id).setNextPosition(newX, newY, targetID);
-	    		}
-	    	}
+	    public void moveToPoint(float newX, float newY, SuperFigure target, boolean itIsMine){
+	        for(Mob mob: mobs){
+	            if(selectedID.contains(mob.getID())){
+                    mob.setIsSelected(true);
+	                mob.setNextPosition(newX, newY,target);
+	            }
+	        }
+	        for(Planet planet: planets){
+	            if(selectedID.contains(planet.getID())){
+                    planet.setIsSelected(true);
+	                planet.setNextPosition(newX, newY,target);
+	            }
+	        }
 	    }
 	    
 	    public void setSelectedID(ArrayList<Integer> selectedID) {
