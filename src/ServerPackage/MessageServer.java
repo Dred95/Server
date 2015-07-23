@@ -1,7 +1,6 @@
 package ServerPackage;
 import java.io.*;
 import java.net.*;
-import java.nio.channels.ServerSocketChannel;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -20,9 +19,10 @@ public class MessageServer {
 	 private  SocketListener socketl2;
 	 private  Thread thread1; 								
 	 private  Thread thread2;
-	 private  java.net.ServerSocket server;	
-     public  Gson gson;
+	 private  java.net.ServerSocket server;
+     private int connectedCount = 0;
 	 private DefaultCommand command;
+	 public  Gson gson;
 	 public Utils utils;
 	 public GameplayServer gameplayServer;
 	 
@@ -40,6 +40,15 @@ public class MessageServer {
 	 
 	 public void SetGameplayServer(GameplayServer gameplayServer){
 		 this.gameplayServer = gameplayServer;
+	 }
+	 
+	 public void connectSuccess()
+	 {
+		 connectedCount ++;
+		 if (connectedCount > 1)
+		 {
+				gameplayServer.startGame();
+		 }
 	 }
 	 
 	 private  void InitializeServer() throws IOException{
@@ -128,7 +137,7 @@ public class MessageServer {
 }
 
 class SocketListener implements Runnable{
-	private  MessageServer gameServer;
+	private  MessageServer messageServer;
 	private  java.net.ServerSocket server = null;
 	private  BufferedReader in;
 	private  PrintWriter out;
@@ -136,7 +145,7 @@ class SocketListener implements Runnable{
 	
 	public SocketListener(MessageServer creator, java.net.ServerSocket serverSocket){
 		this.server = serverSocket;
-		this.gameServer = creator;
+		this.messageServer = creator;
 	}
 
 	@Override
@@ -144,21 +153,18 @@ class SocketListener implements Runnable{
 		String input;
 		try {
 			client = server.accept();
+			
+			messageServer.connectSuccess();
 			System.out.println("Thread Initialized "+Thread.currentThread().getName());
 			in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			out = new PrintWriter(client.getOutputStream(),true);
-			
-			if (Thread.currentThread().getName().equals("thread2"))
-			{
-				gameServer.gameplayServer.startGame();
-			}
-			
+					
 			while ((input = in.readLine()) != null ) {
 				if (input.equalsIgnoreCase("exit")) break;
 				//out.println("? ::: "+input);
 				//System.out.println(input);
 				//input = Thread.currentThread().getName() + ": "+input;
-				gameServer.addToInputQueue(input);
+				messageServer.addToInputQueue(input);
 				}
 			
 		} catch (IOException e) {

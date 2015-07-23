@@ -41,13 +41,16 @@ public final class GameplayServer {
 		   if(ID == 1)
 		   {
 			   ping1 = System.currentTimeMillis() - time;
+			   System.out.println("Player 1 ping = "+ping1);
 		   }else if( ID == 2)
 		   {
 			   ping2 = System.currentTimeMillis() - time;
 		   } else
 		   {
 			   System.out.println("SetPing: wrong id: "+ID);
+			   System.out.println("Player 2 ping = "+ping2);
 		   }
+		   
 	   }
 	    
 	    public Map<Integer, Mob> getMobs(){
@@ -153,7 +156,7 @@ public final class GameplayServer {
 	            	messageServer.addToOutputQueue(utils.createOutputString(new NewOwner(planet.getKey(), planet.getValue().getOwnerID())));
 	            	planet.getValue().setNewOwner(false);
 	            }
-	            if(planet.getValue().getOwnerID() != utils.NEUTRAL_OWNER_ID){
+	            if(planet.getValue().getOwnerID() != Utils.NEUTRAL_OWNER_ID){
 	            	playerValue[planet.getValue().getOwnerID()-1]++;
 	            }
 	        }
@@ -172,7 +175,7 @@ public final class GameplayServer {
 	                }
 	                mob.getValue().update(this, delta);
 	            }
-	            if(mob.getValue().getOwnerID() != utils.NEUTRAL_OWNER_ID){
+	            if(mob.getValue().getOwnerID() != Utils.NEUTRAL_OWNER_ID){
 	            	playerValue[mob.getValue().getOwnerID()-1]++;
 	            }
 	        }
