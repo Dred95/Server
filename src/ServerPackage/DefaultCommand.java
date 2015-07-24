@@ -37,15 +37,17 @@ class Move extends DefaultCommand{
 	}
 }
 
-class Setp extends DefaultCommand{
-	public Map<Integer, Mob> mobs;
-	public Map<Integer, Planet> planets;
+class StartConfiguration extends DefaultCommand{
+	public ArrayList<Add> add;
 	public int receiverID;
+	public int levelWidth;
+	public int levelHeight;
 
-	public Setp(Map<Integer, Mob> mobs, Map<Integer, Planet> planets, int receiverID){
-		name ="Setp";
-		this.planets = planets;
-		this.mobs = mobs;
+	public StartConfiguration(ArrayList<Add> add, int receiverID, int levelWidth, int levelHeight){
+		name ="StartConfiguration";
+		this.add = add;
+		this.levelWidth = levelWidth;
+		this.levelHeight = levelHeight;
 		this.receiverID = receiverID;
 	}
 }
@@ -95,5 +97,18 @@ class NewOwner extends DefaultCommand {
         name = "NewOwner";
         this.id = id;
         this.ownerID = ownerID;
+    }
+}
+
+class DeltaUpdate extends DefaultCommand{
+	public ArrayList<Integer> id;
+    public ArrayList<Float> xPosition;
+    public ArrayList<Float> yPosition;
+
+    public DeltaUpdate(ArrayList<Integer> id, ArrayList<Float> xPosition, ArrayList<Float> yPosition){
+        name = "DeltaUpdate";
+        this.id = id;
+        this.xPosition = xPosition;
+        this.yPosition = yPosition;
     }
 }

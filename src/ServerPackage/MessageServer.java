@@ -60,14 +60,14 @@ public class MessageServer {
 		gson = new GsonBuilder().setPrettyPrinting().create();
 		
 		socketl1 = new SocketListener(this, server);
-		thread1 = new Thread(socketl1,"thread1");
+		thread1 = new Thread(socketl1, "thread1");
 		thread1.setDaemon(true);
 		thread1.start();
 		System.out.println("Thread 1 started");
 		
 		
 		socketl2 = new SocketListener(this, server);
-		thread2 = new Thread(socketl2,"thread2");
+		thread2 = new Thread(socketl2, "thread2");
 		thread2.setDaemon(true);
 		thread2.start();
 		System.out.println("Thread 2 started");
@@ -127,8 +127,10 @@ public class MessageServer {
 				continue;
 			}
 			
-			if (!thread1.isAlive() && !thread2.isAlive()) break;
+			if (!thread1.isAlive() && !thread2.isAlive()){ 
+				break;
 			}
+		}
 		
 		socketl1.Close();
 		socketl2.Close();
@@ -154,18 +156,14 @@ class SocketListener implements Runnable{
 		try {
 			client = server.accept();
 			
-			messageServer.connectSuccess();
 			System.out.println("Thread Initialized "+Thread.currentThread().getName());
 			in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			out = new PrintWriter(client.getOutputStream(),true);
+			messageServer.connectSuccess();
 					
 			while ((input = in.readLine()) != null ) {
-				if (input.equalsIgnoreCase("exit")) break;
-				//out.println("? ::: "+input);
-				//System.out.println(input);
-				//input = Thread.currentThread().getName() + ": "+input;
 				messageServer.addToInputQueue(input);
-				}
+			}
 			
 		} catch (IOException e) {
 			e.printStackTrace();

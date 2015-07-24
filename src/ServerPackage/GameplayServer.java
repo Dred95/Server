@@ -21,6 +21,7 @@ public final class GameplayServer {
         private ArrayList<Integer> selectedID = new ArrayList<Integer>();
 	    private float mobRadius, HP, reloadTime, attackRadius, damage;
 	    private float planetRadius, timeToControl, timeToRespawn;
+	    private float deltaTime;
 	    private int size = 20;
 	    public Utils utils;
 	    private long time,ping1,ping2;
@@ -52,6 +53,10 @@ public final class GameplayServer {
 		   }
 		   
 	   }
+	   
+	   public float getPlanetRadius() {
+		return planetRadius;
+	   }
 	    
 	    public Map<Integer, Mob> getMobs(){
 	    	return mobs;
@@ -67,6 +72,7 @@ public final class GameplayServer {
 	     */
 	    public GameplayServer(MessageServer messageServer){
 	    	this.messageServer = messageServer;
+	    	deltaTime = 0;
 	        //Mob's variables
 	        mobRadius = 5;
 	        HP = 100;
@@ -90,27 +96,37 @@ public final class GameplayServer {
 	     */
 	    public void startGame(){
 	    	utils = new Utils();
-	        
+	    	ArrayList<Add> add = new ArrayList<Add>();
 	    	planets = new HashMap<Integer, Planet>();
 	    	int planetID = utils.GetNewPlanetID();
 	    	planets.put(planetID, new Planet(200, 200, planetRadius, timeToControl, timeToRespawn, 1));
+	    	add.add(new Add(planetID, 1, 200, 200, planetRadius));
 	    	
 	    	planetID = utils.GetNewPlanetID();
 	    	planets.put(planetID, new Planet(600, 200, planetRadius, timeToControl, timeToRespawn, 2));
-	    	
+	    	add.add(new Add(planetID, 2, 600, 200, planetRadius));
 
 	    	planetID = utils.GetNewPlanetID();
 	    	planets.put(planetID, new Planet(300, 400, planetRadius, timeToControl, timeToRespawn, Utils.NEUTRAL_OWNER_ID));
-	    	
+	    	add.add(new Add(planetID, Utils.NEUTRAL_OWNER_ID, 300, 400, planetRadius));
 
 	    	planetID = utils.GetNewPlanetID();
 	    	planets.put(planetID, new Planet(300, 100, planetRadius, timeToControl, timeToRespawn, Utils.NEUTRAL_OWNER_ID));
+	    	add.add(new Add(planetID, Utils.NEUTRAL_OWNER_ID, 300, 100, planetRadius));
 	    	
-	        for (Map.Entry<Integer, Planet> planet: planets.entrySet()){
-	            addMobsToPlanet(planet.getKey());
+	        for (Planet planet: planets.values()){
+	        	for (int i = 0; i < size; i++){
+		    		double angle = (2*Math.PI)/size*i;
+		 	        float radius = planet.getFigure().radius + 2*mobRadius;
+		 	        float posX = (float) (planet.getFigure().x + radius*Math.cos(angle));
+		 	        float posY = (float) (planet.getFigure().y + radius*Math.sin(angle));
+		 	        mobs.put(mobs.size() + 50, new Mob(posX, posY, mobRadius, HP, reloadTime, attackRadius, damage, planet.getOwnerID()));
+		 	        add.add(new Add(mobs.size() + 50, planet.getOwnerID(), posX, posY, mobRadius));
+		    	}
 	        }
-	        
-	    	Setp setupConfig = new Setp(mobs, planets, 1);
+
+	    	StartConfiguration setupConfig = new StartConfiguration(add, 1, 1024, 600);
+	    	
 	    	messageServer.SendTo(1, utils.createOutputString(setupConfig));
 	    	
 	    	setupConfig.receiverID = 2;
@@ -121,21 +137,7 @@ public final class GameplayServer {
 	    	
 	    	myTimer.schedule(new timerUpdate(), 0, 33);
 	    }
-
-	    /**
-	     * Generate mobs on planet(Server part!)
-	     * @param planetID - size planet's
-	     */
-	    private void addMobsToPlanet(int planetID){
-	    	for (int i = 0; i < size; i++){
-	    		double angle = (2*Math.PI)/size*i;
-	 	        float radius = planets.get(planetID).getFigure().radius + 2*mobRadius;
-	 	        float posX = (float) (planets.get(planetID).getFigure().x + radius*Math.cos(angle));
-	 	        float posY = (float) (planets.get(planetID).getFigure().y + radius*Math.sin(angle));
-	 	        mobs.put(mobs.size() + 50, new Mob(posX, posY, mobRadius, HP, reloadTime, attackRadius, damage, planets.get(planetID).getOwnerID()));
-	    	}
-	    }
-
+	    
 	    /**
 	     * Update method
 	     * @param delta - delta time
@@ -179,10 +181,29 @@ public final class GameplayServer {
 	            	playerValue[mob.getValue().getOwnerID()-1]++;
 	            }
 	        }
+	        deltaTime += delta;
+	        if(deltaTime >= 2){
+	        	deltaTime = 0;
+	        	ArrayList<Integer> id = new ArrayList<>();
+	            ArrayList<Float> xPosition = new ArrayList<>();
+	            ArrayList<Float> yPosition = new ArrayList<>();
+		        for (Map.Entry<Integer, Planet> planet: planets.entrySet()) {
+		        	id.add(planet.getKey());
+		        	xPosition.add(planet.getValue().getFigure().x);
+		        	yPosition.add(planet.getValue().getFigure().y);
+		        }
+		        
+		        for (Map.Entry<Integer, Mob> mob: mobs.entrySet()) {
+		        	id.add(mob.getKey());
+		        	xPosition.add(mob.getValue().getFigure().x);
+		        	yPosition.add(mob.getValue().getFigure().y);
+	        	}
+		        
+	            messageServer.addToOutputQueue(utils.createOutputString(new DeltaUpdate(id, xPosition, yPosition)));
+	        }
 	    }
 
 	    private void respawnToPlanet(Planet planet){
-	    
 	    	planet.resetMobRestpawn();
 	        float radius = planet.getFigure().radius + 2*mobRadius;
 	        boolean isAdded = false;
